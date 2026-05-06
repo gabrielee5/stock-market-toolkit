@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from dor import DATA_DIR, OUTPUT_DIR, clean_data, descriptive_stats, fetch_prices, save_results
 from dor_bins import compute_bins, positive_return_stats, scheme_for
 from dor_quarterly import monthly_to_quarterly
+from dor_report import write_workbook
 
 CONFIG_DEFAULT = ROOT / "config" / "assets.csv"
 TIMEFRAMES = ["d", "w", "m", "q"]
@@ -155,7 +156,7 @@ def process_asset(asset: Asset, today: str, skip_fetch: bool, allow_empty: bool)
     return asset_results
 
 
-def run(config_path: Path, skip_fetch: bool, allow_empty: bool) -> list[dict]:
+def run(config_path: Path, skip_fetch: bool, allow_empty: bool, out_path: Path | None) -> list[dict]:
     today = date.today().isoformat()
     assets = load_assets(config_path)
     print(f"Loaded {len(assets)} assets from {config_path}")
@@ -165,18 +166,24 @@ def run(config_path: Path, skip_fetch: bool, allow_empty: bool) -> list[dict]:
         if res is not None:
             out.append(res)
     print(f"\nProcessed {len(out)} of {len(assets)} assets.")
+    if out:
+        report = out_path or (OUTPUT_DIR / f"Distribution_of_Returns_{today}.xlsx")
+        write_workbook(out, report)
+        print(f"Report: {report}")
     return out
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=CONFIG_DEFAULT)
+    parser.add_argument("--out", type=Path, default=None,
+                        help="Override the xlsx output path (default: output/Distribution_of_Returns_<DATE>.xlsx).")
     parser.add_argument("--skip-fetch", action="store_true",
                         help="Read cached cleaned CSVs from data/ instead of hitting yfinance.")
     parser.add_argument("--allow-empty", action="store_true",
                         help="Skip assets that fail to fetch (e.g. delisted) instead of aborting.")
     args = parser.parse_args()
-    run(args.config, args.skip_fetch, args.allow_empty)
+    run(args.config, args.skip_fetch, args.allow_empty, args.out)
 
 
 if __name__ == "__main__":
