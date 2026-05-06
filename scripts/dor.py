@@ -59,6 +59,23 @@ def drop_today_row(df, timeframe="d"):
     return df[~mask]
 
 
+def drop_invalid_ohlc(df, max_hl_ratio=5.0):
+    """Drop rows whose OHLC values are clearly corrupt.
+
+    yfinance occasionally returns broken historical bars (notably for FX
+    weekly/monthly), e.g. EUR/USD weekly with High=409 or Low=0.07.
+    A row is dropped if either:
+      - it violates basic ordering: High < max(Open, Close) or Low > min(Open, Close)
+      - High / Low > max_hl_ratio: a single-bar range that wide (default 400%)
+        is essentially always a data error, even for volatile small caps.
+    """
+    oc_max = df[["Open", "Close"]].max(axis=1)
+    oc_min = df[["Open", "Close"]].min(axis=1)
+    ordering_ok = (df["High"] >= oc_max) & (df["Low"] <= oc_min)
+    range_ok = (df["High"] / df["Low"]) <= max_hl_ratio
+    return df[ordering_ok & range_ok]
+
+
 def clean_data(df, timeframe):
     cleaned = df.copy()
 
@@ -68,6 +85,7 @@ def clean_data(df, timeframe):
     cleaned = cleaned[KEEP_COLUMNS]
 
     cleaned = drop_today_row(cleaned, timeframe)
+    cleaned = drop_invalid_ohlc(cleaned)
 
     cleaned = cleaned.sort_index(
         ascending=False,

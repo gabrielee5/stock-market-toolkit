@@ -1,2 +1,23 @@
 ticker,yfinance_symbol,asset_class,display_name
-AAPL,AAPL,Equity - Large Cap,Apple Inc
+EURUSD,EURUSD=X,FX Major,EUR/USD
+USDJPY,USDJPY=X,FX Major,USD/JPY
+GBPUSD,GBPUSD=X,FX Major,GBP/USD
+AUDUSD,AUDUSD=X,FX Major,AUD/USD
+USDZAR,USDZAR=X,FX EM,USD/ZAR
+USDBRL,USDBRL=X,FX EM,USD/BRL
+USDTRY,USDTRY=X,FX EM,USD/TRY
+SP500,^GSPC,Equity Index,S&P 500
+NDX100,^NDX,Equity Index,Nasdaq 100
+DJI,^DJI,Equity Index,Dow Jones Industrial
+RUA,^RUA,Equity Index,Russell 3000
+RUT,^RUT,Equity Index,Russell 2000
+PCAR,PCAR,Equity - Large Cap,Paccar
+JCI,JCI,Equity - Large Cap,Johnson Controls
+HSY,HSY,Equity - Large Cap,Hershey
+CPB,CPB,Equity - Large Cap,Campbell Soup
+FRPT,FRPT,Equity - Mid Cap,Freshpet
+BILL,BILL,Equity - Mid Cap,Bill.com
+PEGA,PEGA,Equity - Mid Cap,Pegasystems
+ZNGA,ZNGA,Equity - Mid Cap,Zynga
+OLED,OLED,Equity - Mid Cap,Universal Display
+XPO,XPO,Equity - Mid Cap,XPO Logistics
