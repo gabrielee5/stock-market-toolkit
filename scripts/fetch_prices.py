@@ -36,13 +36,13 @@ def fetch_prices(ticker: str, timeframe: str):
 
 def clean_data(df):
     cleaned = df[KEEP_COLUMNS].copy()
+    cleaned = cleaned.sort_index(ascending=False)
 
-    cleaned = cleaned.sort_index(ascending=True)
-    cleaned["C-C Returns"] = cleaned["Adj Close"].pct_change() * 100
+    prev_adj_close = cleaned["Adj Close"].shift(-1)
+    cleaned["C-C Returns"] = (cleaned["Adj Close"] - prev_adj_close) / prev_adj_close * 100
     cleaned["H-L Returns"] = (cleaned["High"] - cleaned["Low"]) / cleaned["Low"] * 100
     cleaned["O-C Returns"] = (cleaned["Close"] - cleaned["Open"]) / cleaned["Open"] * 100
 
-    cleaned = cleaned.sort_index(ascending=False)
     cleaned.index = cleaned.index.strftime("%d-%m-%y")
     cleaned.index.name = "Date"
     return cleaned
