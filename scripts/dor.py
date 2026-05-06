@@ -35,11 +35,28 @@ def fetch_prices(ticker: str, timeframe: str):
     return df
 
 
-def drop_today_row(df):
-    today_str = date.today().strftime("%d-%m-%y")
-    if today_str in df.index:
-        df = df.drop(today_str)
-    return df
+def drop_today_row(df, timeframe="d"):
+    if df.empty:
+        return df
+
+    today = date.today()
+    idx_dates = pd.to_datetime(df.index, format="%d-%m-%y")
+
+    if timeframe == "d":
+        mask = idx_dates.date == today
+    elif timeframe == "w":
+        today_iso = today.isocalendar()
+        mask = pd.Series(
+            [(d.isocalendar().year, d.isocalendar().week) == (today_iso.year, today_iso.week)
+             for d in idx_dates],
+            index=df.index,
+        )
+    elif timeframe == "m":
+        mask = (idx_dates.year == today.year) & (idx_dates.month == today.month)
+    else:
+        raise ValueError(f"Unknown timeframe '{timeframe}'.")
+
+    return df[~mask]
 
 
 def clean_data(df, timeframe):
@@ -50,7 +67,7 @@ def clean_data(df, timeframe):
 
     cleaned = cleaned[KEEP_COLUMNS]
 
-    cleaned = drop_today_row(cleaned)
+    cleaned = drop_today_row(cleaned, timeframe)
 
     cleaned = cleaned.sort_index(
         ascending=False,
@@ -58,11 +75,11 @@ def clean_data(df, timeframe):
     )
 
     prev_adj_close = cleaned["Adj Close"].shift(-1)
-    cleaned["C-C Returns"] = (cleaned["Adj Close"] - prev_adj_close) / prev_adj_close * 100
-    cleaned["H-L Returns"] = (cleaned["High"] - cleaned["Low"]) / cleaned["Low"] * 100
+    cleaned["C-C Returns"] = (cleaned["Adj Close"] - prev_adj_close) / prev_adj_close
+    cleaned["H-L Returns"] = (cleaned["High"] - cleaned["Low"]) / cleaned["Low"]
 
     if timeframe == "d":
-        cleaned["O-C Returns"] = (cleaned["Close"] - cleaned["Open"]) / cleaned["Open"] * 100
+        cleaned["O-C Returns"] = (cleaned["Close"] - cleaned["Open"]) / cleaned["Open"]
 
     cleaned = cleaned.dropna()
 
@@ -71,12 +88,13 @@ def clean_data(df, timeframe):
 
 def descriptive_stats(series):
     s = series.dropna()
-    modes = s.mode()
+    counts = s.value_counts()
+    has_repeat = len(counts) > 0 and counts.iloc[0] > 1
     return {
         "mean": s.mean(),
         "standard_error": s.sem(),
         "median": s.median(),
-        "mode": float(modes.iloc[0]) if not modes.empty else None,
+        "mode": float(counts.index[0]) if has_repeat else None,
         "standard_deviation": s.std(),
         "sample_variance": s.var(),
         "kurtosis": s.kurt(),
@@ -84,6 +102,7 @@ def descriptive_stats(series):
         "range": s.max() - s.min(),
         "minimum": s.min(),
         "maximum": s.max(),
+        "sum": float(s.sum()),
         "count": int(s.count()),
     }
 
