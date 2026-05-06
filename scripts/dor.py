@@ -35,6 +35,13 @@ def fetch_prices(ticker: str, timeframe: str):
     return df
 
 
+def drop_today_row(df):
+    today_str = date.today().strftime("%d-%m-%y")
+    if today_str in df.index:
+        df = df.drop(today_str)
+    return df
+
+
 def clean_data(df, timeframe):
     cleaned = df.copy()
 
@@ -42,6 +49,8 @@ def clean_data(df, timeframe):
     cleaned.index.name = "Date"
 
     cleaned = cleaned[KEEP_COLUMNS]
+
+    cleaned = drop_today_row(cleaned)
 
     cleaned = cleaned.sort_index(
         ascending=False,
