@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 import json
 
+import pandas as pd
 import yfinance as yf
 
 INTERVAL_MAP = {
@@ -35,16 +36,23 @@ def fetch_prices(ticker: str, timeframe: str):
 
 
 def clean_data(df):
-    cleaned = df[KEEP_COLUMNS].copy()
-    cleaned = cleaned.sort_index(ascending=False)
+    cleaned = df.copy()
+
+    cleaned.index = cleaned.index.strftime("%d-%m-%y")
+    cleaned.index.name = "Date"
+
+    cleaned = cleaned[KEEP_COLUMNS]
+
+    cleaned = cleaned.sort_index(
+        ascending=False,
+        key=lambda idx: pd.to_datetime(idx, format="%d-%m-%y"),
+    )
 
     prev_adj_close = cleaned["Adj Close"].shift(-1)
     cleaned["C-C Returns"] = (cleaned["Adj Close"] - prev_adj_close) / prev_adj_close * 100
     cleaned["H-L Returns"] = (cleaned["High"] - cleaned["Low"]) / cleaned["Low"] * 100
     cleaned["O-C Returns"] = (cleaned["Close"] - cleaned["Open"]) / cleaned["Open"] * 100
 
-    cleaned.index = cleaned.index.strftime("%d-%m-%y")
-    cleaned.index.name = "Date"
     return cleaned
 
 
