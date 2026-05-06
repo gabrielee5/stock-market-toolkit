@@ -69,8 +69,10 @@ def monthly_to_quarterly(monthly_clean: pd.DataFrame) -> pd.DataFrame:
     )
 
     # Recompute returns on the newest-first quarterly frame (no O-C at quarterly).
+    # Oldest row's C-C is NaN (no prior quarter). Keep the row so H-L count matches
+    # Excel; downstream per-column dropna() in stat/bin helpers handles the NaN.
     prev_adj = quarterly["Adj Close"].shift(-1)
     quarterly["C-C Returns"] = (quarterly["Adj Close"] - prev_adj) / prev_adj
     quarterly["H-L Returns"] = (quarterly["High"] - quarterly["Low"]) / quarterly["Low"]
 
-    return quarterly.dropna()
+    return quarterly

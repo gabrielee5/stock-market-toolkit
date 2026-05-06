@@ -99,8 +99,9 @@ def clean_data(df, timeframe):
     if timeframe == "d":
         cleaned["O-C Returns"] = (cleaned["Close"] - cleaned["Open"]) / cleaned["Open"]
 
-    cleaned = cleaned.dropna()
-
+    # The oldest row's C-C is NaN (no prior period to compare against), but its
+    # H-L and O-C are valid. Dropping the row globally would short H-L's count by 1
+    # vs Excel. Stat helpers downstream do per-column dropna(), so leave the NaN.
     return cleaned
 
 

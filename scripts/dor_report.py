@@ -123,7 +123,11 @@ def _write_ohlc_block(ws, frame: pd.DataFrame, tf: str) -> int:
     for r_offset, (date_str, row) in enumerate(head.iterrows(), start=4):
         ws.cell(row=r_offset, column=1, value=date_str)
         for col_idx, col in enumerate(columns, start=2):
-            cell = ws.cell(row=r_offset, column=col_idx, value=float(row[col]))
+            val = row[col]
+            cell = ws.cell(
+                row=r_offset, column=col_idx,
+                value=None if pd.isna(val) else float(val),
+            )
             if col in ("C-C Returns", "H-L Returns", "O-C Returns"):
                 cell.number_format = PCT4_FMT
             else:
