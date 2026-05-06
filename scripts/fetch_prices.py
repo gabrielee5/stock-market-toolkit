@@ -35,7 +35,7 @@ def fetch_prices(ticker: str, timeframe: str):
     return df
 
 
-def clean_data(df):
+def clean_data(df, timeframe):
     cleaned = df.copy()
 
     cleaned.index = cleaned.index.strftime("%d-%m-%y")
@@ -51,7 +51,9 @@ def clean_data(df):
     prev_adj_close = cleaned["Adj Close"].shift(-1)
     cleaned["C-C Returns"] = (cleaned["Adj Close"] - prev_adj_close) / prev_adj_close * 100
     cleaned["H-L Returns"] = (cleaned["High"] - cleaned["Low"]) / cleaned["Low"] * 100
-    cleaned["O-C Returns"] = (cleaned["Close"] - cleaned["Open"]) / cleaned["Open"] * 100
+
+    if timeframe == "d":
+        cleaned["O-C Returns"] = (cleaned["Close"] - cleaned["Open"]) / cleaned["Open"] * 100
 
     cleaned = cleaned.dropna()
 
@@ -70,7 +72,7 @@ def save_results(ticker: str, timeframe: str, df):
     raw_csv_path = RAW_DATA_DIR / f"{base_name}.csv"
     df.to_csv(raw_csv_path)
 
-    cleaned = clean_data(df)
+    cleaned = clean_data(df, timeframe)
     clean_csv_path = DATA_DIR / f"{base_name}.csv"
     cleaned.to_csv(clean_csv_path)
 
