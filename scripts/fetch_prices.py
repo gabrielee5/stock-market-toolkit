@@ -53,6 +53,8 @@ def clean_data(df):
     cleaned["H-L Returns"] = (cleaned["High"] - cleaned["Low"]) / cleaned["Low"] * 100
     cleaned["O-C Returns"] = (cleaned["Close"] - cleaned["Open"]) / cleaned["Open"] * 100
 
+    cleaned = cleaned.dropna()
+
     return cleaned
 
 
