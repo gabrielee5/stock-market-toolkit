@@ -69,6 +69,25 @@ def clean_data(df, timeframe):
     return cleaned
 
 
+def descriptive_stats(series):
+    s = series.dropna()
+    modes = s.mode()
+    return {
+        "mean": s.mean(),
+        "standard_error": s.sem(),
+        "median": s.median(),
+        "mode": float(modes.iloc[0]) if not modes.empty else None,
+        "standard_deviation": s.std(),
+        "sample_variance": s.var(),
+        "kurtosis": s.kurt(),
+        "skewness": s.skew(),
+        "range": s.max() - s.min(),
+        "minimum": s.min(),
+        "maximum": s.max(),
+        "count": int(s.count()),
+    }
+
+
 def save_results(ticker: str, timeframe: str, df):
     RAW_DATA_DIR.mkdir(exist_ok=True)
     DATA_DIR.mkdir(exist_ok=True)
