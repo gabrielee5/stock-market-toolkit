@@ -62,7 +62,7 @@ End-to-end recipe for building a fresh Distribution-of-Returns workbook over you
 
    For each asset this fetches d/w/m OHLC from yfinance, derives quarterly bars, and writes per-asset stats and bin CSVs into `output/`.
 
-4. **Open the report.** It lands at `output/Distribution_of_Returns_{YYYY-MM-DD}.xlsx` (or wherever `--out` pointed). The first sheet is the cross-asset summary; subsequent sheets are one detail tab per asset.
+4. **Open the report.** It lands at `output/Distribution_of_Returns_{YYYY-MM-DD}.xlsx` (or wherever `--out` pointed). Sheet order: **Summary** (raw values) → **Grading** (A–E quintile heat-map across the universe) → one detail tab per asset and timeframe.
 
 5. **Iterate cheaply.** If you only want to tweak the report layout or bin scheme, re-run with `--skip-fetch` to reuse today's cached CSVs instead of hitting yfinance again:
 
@@ -110,7 +110,10 @@ python scripts/dor_run.py --config path/to/assets.csv --out path/to/report.xlsx
 Default report path: `output/Distribution_of_Returns_{YYYY-MM-DD}.xlsx`.
 
 ### `dor_report.py` — xlsx writer
-Builds the final workbook: a Summary sheet with C-C standard deviation and average H-L return per asset across all four timeframes, followed by one detail sheet per asset containing the OHLC + returns table on the left and per-return blocks (bin distribution, descriptive stats, positive-return analysis) on the right.
+Builds the final workbook with three layers:
+- **Summary sheet** — C-C standard deviation and average H-L return per asset, across all four timeframes, formatted as percentages.
+- **Grading sheet** — same eight metrics, but each cell is replaced by a quintile grade **A–E** computed across the universe in this report, with a green→red colour scale. A cell shows e.g. `B  (1.50%)`: the letter is the rank bucket (A = lowest 20%, E = highest 20%); the value is the underlying number. Ranks are recomputed per column, so an asset can be an A on daily volatility and a D on quarterly. Use this sheet for at-a-glance comparison across the universe.
+- **Per-asset detail sheets** — one per asset per timeframe, with the OHLC + returns table on the left and per-return blocks (bin distribution, descriptive stats, positive-return analysis) on the right.
 
 ### `verify_against_excel.py` — Excel parity check
 Loads a copy of the original `Distribution_of_Returns_Template.xlsx`, runs the Python pipeline on the same OHLC, and asserts every descriptive-stats cell matches to floating-point tolerance. Useful when changing any of the math.
